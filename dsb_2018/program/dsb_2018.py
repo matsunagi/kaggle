@@ -12,6 +12,8 @@ import numpy as np
 from skimage.color import rgb2gray
 from skimage.filters import threshold_otsu
 from scipy import ndimage
+from matplotlib.colors import ListedColormap
+import matplotlib.pyplot as plt
 
 sample_index = 45
 
@@ -41,7 +43,29 @@ def main():
         label_arrays.append(label_mask)
     imageio.imwrite("tmp3.png", label_arrays[0])
 
-    print("There are {} separate components / objects detected.".format(nlabels))
+    print("There are {} separate components / objects detected."
+          .format(nlabels))
+
+    rand_cmap = ListedColormap(np.random.rand(256, 3))
+    print(rand_cmap)
+    labels_for_display = np.where(labels > 0, labels, np.nan)
+    # for showing a background picture
+    plt.imshow(im_gray, cmap="gray")
+    plt.imshow(labels_for_display, cmap=rand_cmap)
+    plt.axis("off")
+    plt.title("Labeled Cells ({} cells)".format(nlabels))
+    # plt.show()
+    for label_ind, label_coords in enumerate(ndimage.find_objects(labels)):
+        cell = im_gray[label_coords]
+        print(label_coords)
+        # remove too small nuclei
+        if np.product(cell.shape) < 10:
+            print('Label {} is too small! Setting to 0.'.format(label_ind))
+            mask = np.where(labels == label_ind, 0, mask)
+
+    # regenerate the labels
+    labels, nlabels = ndimage.label(mask)
+
 
 if __name__ == '__main__':
     main()
