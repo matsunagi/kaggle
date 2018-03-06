@@ -104,6 +104,7 @@ def analyze_image(im_path):
     # read and converting to gray
     # print("im_id: ", im_path)
     # print("im_id: ", im_path.parts, im_path[0])
+    # this part is
     im_id = im_path.parts[-3]
     im = imageio.imread(str(im_path))
     im_gray = rgb2gray(im)
@@ -122,8 +123,9 @@ def analyze_image(im_path):
         label_mask = np.where(labels == label_num, 1, 0)
         if label_mask.flatten().sum() > 10:
             rle = rle_encoding(label_mask)
-            s = pd.Series({"ImageId": im_id, "EncodePixels": rle})
+            s = pd.Series({"ImageId": im_id, "EncodedPixels": rle})
             im_df = im_df.append(s, ignore_index=True)
+    imageio.imwrite(im_id + ".png", mask)
     return im_df
 
 
@@ -132,11 +134,12 @@ def analyze_list_of_images(im_path_list):
     for im_path in im_path_list:
         im_df = analyze_image(im_path)
         all_df = all_df.append(im_df, ignore_index=True)
+    return all_df
 
 
 def main():
     testing = pathlib.Path("../data/stage1_test/").glob("*/images/*.png")
-    df = analyze_image(list(testing))
+    df = analyze_list_of_images(list(testing))[:1]
     df.to_csv("../data/submission.csv", index=None)
 
 
